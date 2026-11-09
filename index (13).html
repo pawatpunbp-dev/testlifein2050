@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Life in 2050 Test</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Anuphan:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: sticky journey bar (four level-colored segments + score) over one activity card at a time. Dark-first starfield; each level owns a color that tags its cards. */
+:root{
+  --bg:#0a0e1a; --dot:#1a2236; --surf:#121a2b; --surf2:#1a2438; --line:#2a3750;
+  --ink:#eef2f9; --soft:#9aa9c2;
+  --l1:#ff6f91; --l2:#ff9f45; --l3:#ffd84d; --l4:#46e0a0; --l5:#52c7ff;
+  --on:#0a0e1a;
+  --good:#46e0a0; --bad:#ff7a7a; --goodbg:#0f3a30; --badbg:#42202a;
+  --display:"Bricolage Grotesque","Anuphan",system-ui,sans-serif;
+  --body:"Anuphan",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#f2f5fb; --dot:#dde4f0; --surf:#ffffff; --surf2:#e9eef7; --line:#cfd8e8;
+    --ink:#0f1522; --soft:#566480;
+    --l1:#ff5a85; --l2:#ff8a26; --l3:#ffc61f; --l4:#1fcb8b; --l5:#27b2f3;
+    --good:#0b7d58; --bad:#c7303a; --goodbg:#d7f4e8; --badbg:#ffe1e3;
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#f2f5fb; --dot:#dde4f0; --surf:#ffffff; --surf2:#e9eef7; --line:#cfd8e8;
+  --ink:#0f1522; --soft:#566480;
+  --l1:#ff5a85; --l2:#ff8a26; --l3:#ffc61f; --l4:#1fcb8b; --l5:#27b2f3;
+  --good:#0b7d58; --bad:#c7303a; --goodbg:#d7f4e8; --badbg:#ffe1e3;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{min-height:100%}
+body{background:radial-gradient(circle,var(--dot) 1px,transparent 1.6px) 0 0/24px 24px,var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:45;background:var(--bg)}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--l5);outline-offset:2px}
+p{margin:0}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.05;text-wrap:balance}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.soft{color:var(--soft)}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:var(--bg);border-bottom:1px solid var(--line)}
+.top .row1{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:10px}
+.brand{font-family:var(--display);font-weight:800;font-size:1.25rem;text-decoration:none;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.brand i{width:12px;height:12px;border-radius:50%;background:var(--l3);box-shadow:0 0 0 4px color-mix(in srgb,var(--l3) 25%,transparent)}
+.who{display:inline-flex;align-items:center;gap:8px;max-width:60%;min-height:34px;padding:2px 14px;border:1px solid var(--line);border-radius:999px;background:var(--surf);text-decoration:none;font-weight:600;font-size:.88rem}
+.who span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who b{font-family:var(--mono);font-size:.82rem;background:var(--l4);color:var(--on);border-radius:999px;padding:0 8px;flex:none}
+.journey{display:grid;grid-template-columns:repeat(4,1fr) .8fr;gap:6px;padding:10px 0 10px}
+.seg{display:flex;flex-direction:column;gap:5px;text-decoration:none;min-width:0}
+.seg .track{display:block;height:8px;border-radius:99px;background:var(--surf2);overflow:hidden}
+.seg .track i{display:block;height:100%;background:var(--c);border-radius:99px;transition:width .3s}
+.seg .lbl{display:flex;align-items:baseline;gap:5px;font-size:.74rem;color:var(--soft);font-weight:600;min-width:0}
+.seg .lbl b{font-family:var(--mono);font-size:.78rem;color:var(--ink)}
+.seg .lbl em{font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg.cur .track{height:10px;box-shadow:0 0 0 2px var(--c)}
+.seg.cur .lbl{color:var(--ink)}
+.seg:hover .lbl{color:var(--ink)}
+
+main{padding-block:22px 110px}
+
+/* shared */
+.card{background:var(--surf);border:1px solid var(--line);border-radius:24px;padding:22px}
+.tag{display:inline-flex;align-items:center;font-family:var(--mono);font-weight:700;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:var(--pc,var(--l4));color:var(--on)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:8px 22px;border:0;border-radius:999px;background:var(--pc,var(--l4));color:var(--on);font-weight:700;cursor:pointer;text-decoration:none;transition:transform .1s,filter .1s}
+.btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.ghost:hover{border-color:var(--soft)}
+.btn.sm{min-height:36px;padding:4px 16px;font-size:.9rem}
+.btn:disabled{opacity:.4;pointer-events:none}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:18px}
+.fb{margin-top:14px;font-weight:600;min-height:1.4em}
+.fb.ok{color:var(--good)} .fb.no{color:var(--bad)}
+.opt{display:inline-flex;align-items:center;gap:10px;min-height:46px;padding:8px 16px;border:1.5px solid var(--line);border-radius:16px;background:var(--surf2);font-weight:600;cursor:pointer;text-align:left}
+.opt:hover{border-color:var(--soft)}
+.opt.on,.opt[aria-pressed="true"]{background:var(--pc);color:var(--on);border-color:var(--pc)}
+.opt.ok{background:var(--goodbg);border-color:var(--good);color:var(--ink)}
+.opt.no{background:var(--badbg);border-color:var(--bad);color:var(--ink)}
+.opt[disabled]{opacity:.45;cursor:default}
+.opt.ok[disabled],.opt.no[disabled]{opacity:1}
+.opt b{font-family:var(--mono);font-size:.85rem;flex:none}
+input[type=text],input[type=number],select,textarea{width:100%;min-height:46px;padding:8px 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--surf2);font-weight:500}
+label.field{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:.92rem;color:var(--soft)}
+@keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+@keyframes pop{50%{transform:scale(1.05)}}
+.shake{animation:shake .35s}.pop{animation:pop .3s}
+.hint{font-size:.85rem;color:var(--soft)}
+
+/* step page */
+.partline{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:12px}
+.partline .pname{font-weight:700}
+.partline em{font-style:normal;color:var(--soft);font-weight:500}
+.dots{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 12px;scrollbar-width:none}
+.dots::-webkit-scrollbar{display:none}
+.dot{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:2px 12px;border:1.5px solid var(--line);border-radius:999px;text-decoration:none;font-size:.82rem;font-weight:600;color:var(--soft);background:var(--surf)}
+.dot b{font-family:var(--mono)}
+.dot.done::after{content:"✓";color:var(--good);font-weight:800}
+.dot.cur{background:var(--pc);border-color:var(--pc);color:var(--on)}
+.dot.cur.done::after{color:var(--on)}
+.shead{display:flex;gap:14px;align-items:flex-start;margin-bottom:18px}
+.stag{flex:none;min-width:46px;height:46px;padding:0 10px;display:grid;place-items:center;border-radius:14px;background:var(--pc);color:var(--on);font-family:var(--mono);font-weight:700;font-size:1.05rem}
+.shead h2{font-size:clamp(1.6rem,4.5vw,2.2rem);font-weight:800}
+.shead .th{margin-top:6px;color:var(--soft);font-weight:500}
+.scorenote{margin-top:20px;padding-top:14px;border-top:1px dashed var(--line);font-size:.84rem;color:var(--soft)}
+.pager{display:flex;justify-content:space-between;gap:12px;margin-top:22px;flex-wrap:wrap}
+.pager .btn{flex:0 1 auto;max-width:100%}
+
+/* home */
+.hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:32px;align-items:start}
+.hero h1{font-size:clamp(3rem,9vw,5.6rem);font-weight:800;letter-spacing:-.03em;margin-top:14px}
+.hero h1 u{text-decoration:none;background:linear-gradient(transparent 62%,var(--l3) 62%,var(--l3) 90%,transparent 90%);color:var(--ink)}
+.lead{margin-top:16px;font-size:1.08rem;color:var(--soft);max-width:34rem}
+.chat{display:flex;flex-direction:column;gap:8px;margin-top:22px;max-width:25rem}
+.bub{padding:9px 16px;border-radius:20px;font-weight:500;font-size:.95rem;max-width:88%}
+.bub.me{align-self:flex-end;background:var(--l5);color:var(--on);border-bottom-right-radius:6px}
+.bub.ai{align-self:flex-start;background:var(--surf2);border:1px solid var(--line);border-bottom-left-radius:6px}
+.idcard{margin-top:22px;display:flex;flex-direction:column;gap:14px;max-width:31rem}
+.idgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.idgrid .wide{grid-column:1/-1}
+.map{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.map a{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);border-radius:20px;background:var(--surf);text-decoration:none;transition:transform .12s,border-color .12s}
+.map a:hover{transform:translateX(4px);border-color:var(--c)}
+.map .n{flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--c);color:var(--on);font-family:var(--display);font-weight:800;font-size:1.3rem}
+.map b{display:block;font-family:var(--display);font-size:1.15rem;line-height:1.1}
+.map span.t{display:block;color:var(--soft);font-size:.86rem;margin-top:2px}
+.map .meta{margin-left:auto;font-family:var(--mono);font-size:.74rem;color:var(--soft);text-align:right;flex:none}
+.rules{margin-top:36px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.rules .card{padding:16px 18px}
+.rules h3{font-size:1.05rem;margin-bottom:6px}
+.rules p{color:var(--soft);font-size:.9rem}
+
+/* word cards */
+.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}
+.wcard{padding:14px 16px;border:1px solid var(--line);border-radius:20px;background:var(--surf2);display:flex;flex-direction:column;gap:8px;min-width:0}
+.wcard.heard{border-color:var(--good)}
+.wcard.heard .wn{background:var(--good)}
+.wcard.heard .wn::after{content:"✓";margin-left:3px}
+.vw.got{background:color-mix(in srgb,var(--good) 35%,transparent);border-bottom-color:var(--good)}
+.wcard header{display:flex;align-items:flex-start;gap:12px}
+.wn{flex:none;min-width:30px;height:30px;padding:0 6px;border-radius:10px;display:grid;place-items:center;background:var(--pc);color:var(--on);font-family:var(--mono);font-weight:700;font-size:.8rem}
+.wt{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px}
+.wt b{font-family:var(--display);font-size:1.5rem;line-height:1.05;overflow-wrap:anywhere}
+.pos{font-family:var(--mono);font-size:.75rem;color:var(--soft)}
+.ipa{flex-basis:100%;font-family:var(--mono);font-size:.82rem;color:var(--soft)}
+.wsp{display:flex;gap:6px;flex:none}
+.spk{width:38px;height:38px;display:grid;place-items:center;padding:0;border:1px solid var(--line);border-radius:50%;background:var(--surf);cursor:pointer}
+.spk:hover{background:var(--pc);color:var(--on);border-color:var(--pc)}
+.spk svg{width:17px;height:17px;fill:currentColor}
+.spk.slow{width:auto;padding:0 12px;border-radius:999px;font-family:var(--mono);font-size:.72rem;font-weight:700}
+.wth{font-size:1.1rem;font-weight:600}
+.rel{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:2px 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--surf);font-weight:600;font-size:.9rem}
+.chip i{font-style:normal;font-family:var(--mono);font-weight:800}
+button.chip{cursor:pointer;color:inherit}
+button.chip:hover{background:var(--surf2)}
+.chip svg{width:15px;height:15px;fill:currentColor;opacity:.7;flex:none}
+.chip.syn{border-color:var(--l4)}.chip.syn i{color:var(--good)}
+.chip.ant{border-color:var(--l1)}.chip.ant i{color:var(--bad)}
+.wcard .ex{font-size:.88rem;color:var(--soft);font-style:italic}
+.wcard .ex b{color:var(--ink);font-style:normal}
+.wpanel{position:sticky;top:var(--stk,120px);z-index:30;max-height:42vh;overflow-y:auto;padding:14px;border:1.5px solid var(--pc,var(--l3));border-radius:22px;margin-bottom:18px;background:var(--surf);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.wpanel .wcard{border:0;background:transparent;padding:2px}
+.wpanel .empty{color:var(--soft);font-weight:600;padding:8px 4px}
+
+/* match */
+.prog{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-weight:700;font-size:.85rem;margin-bottom:14px}
+.bar{flex:1;height:10px;border-radius:99px;background:var(--surf2);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--pc);width:0;transition:width .25s}
+.mcols{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.mcol{display:flex;flex-direction:column;gap:8px;min-width:0}
+.mb{min-height:52px;padding:6px 12px;border:1.5px solid var(--line);border-radius:14px;background:var(--surf2);font-weight:600;cursor:pointer;overflow-wrap:anywhere;min-width:0}
+.mb.sel{background:var(--pc);color:var(--on);border-color:var(--pc)}
+.mb.done{background:var(--goodbg);border-color:var(--good);pointer-events:none}
+.mb.bad{background:var(--badbg);border-color:var(--bad)}
+
+/* passage */
+.passage .para{margin-top:16px}
+.passage .para:first-of-type{margin-top:0}
+.plabel{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);margin-bottom:4px}
+.lis{min-height:28px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--surf2);font-family:var(--mono);font-size:.7rem;font-weight:700;cursor:pointer;text-transform:uppercase}
+.lis:hover{background:var(--pc);color:var(--on);border-color:var(--pc)}
+.passage p{font-size:1.06rem;line-height:1.85}
+.s{border-radius:4px}
+.s.hl{background:color-mix(in srgb,var(--l3) 40%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--l3) 40%,transparent)}
+.vw{padding:0 2px;border:0;border-bottom:2px solid var(--pc);border-radius:4px 4px 0 0;background:color-mix(in srgb,var(--pc) 24%,transparent);font:inherit;color:inherit;cursor:pointer}
+.vw:hover,.vw.on{background:var(--pc);color:var(--on)}
+.ptitle{font-size:1.6rem;margin-bottom:14px}
+.slbox{margin-top:20px;padding:16px 18px;border-radius:20px;background:var(--surf2);border:1.5px solid var(--l5)}
+.slbox.hl{box-shadow:0 0 0 4px color-mix(in srgb,var(--l3) 50%,transparent);border-color:var(--l3)}
+.slbox b{font-family:var(--mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase}
+.slbox p{margin-top:6px}
+
+/* questions */
+.qcard{padding:16px 18px;border:1px solid var(--line);border-radius:20px;background:var(--surf2);margin-bottom:14px}
+.qcard .qh{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.qcard .num{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--pc);color:var(--on);font-family:var(--mono);font-weight:700;font-size:.85rem;flex:none}
+.qcard .qt{font-family:var(--mono);font-size:.76rem;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.04em}
+.qcard .qx{font-weight:600;font-size:1.08rem;margin-bottom:10px}
+.qopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:8px}
+.qopts .opt{background:var(--surf);justify-content:center}
+.why{margin-top:10px;font-size:.92rem;padding:10px 12px;border-radius:12px;background:var(--surf)}
+.why .btn{margin-top:8px}
+
+/* score */
+.report{padding:0;overflow:hidden}
+.rtop{display:flex;flex-wrap:wrap;gap:10px 16px;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--line);background:var(--surf2)}
+.rtop h2{font-size:1.5rem}
+.stamp{font-family:var(--mono);font-size:.8rem;color:var(--soft)}
+.rwho{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;padding:18px 22px}
+.rbig{display:flex;flex-wrap:wrap;align-items:center;gap:14px 28px;padding:6px 22px 22px}
+.rbig .num{font-family:var(--display);font-weight:800;font-size:clamp(3.6rem,12vw,5.6rem);line-height:.95;letter-spacing:-.03em}
+.rbig .num small{font-size:.38em;color:var(--soft);font-weight:600;letter-spacing:0}
+.rbig .pct{font-family:var(--mono);font-weight:700;font-size:1.4rem}
+.rank{display:inline-block;margin-top:6px;padding:4px 14px;border-radius:999px;background:var(--l3);color:var(--on);font-weight:700}
+.rparts{display:flex;flex-direction:column;gap:12px;padding:0 22px 22px}
+.rp{display:grid;grid-template-columns:minmax(0,12rem) 1fr auto;gap:12px;align-items:center}
+.rp b{font-size:.92rem}
+.rp .bar{height:12px}
+.rp .bar i{background:var(--c)}
+.rp .sc{font-family:var(--mono);font-weight:700;font-size:.9rem;white-space:nowrap}
+.rlist{border-top:1px solid var(--line)}
+.rl{display:grid;grid-template-columns:34px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:10px 22px;border-bottom:1px solid var(--line);font-size:.92rem}
+.rl:last-child{border-bottom:0}
+.rl .tg{width:34px;height:24px;border-radius:8px;display:grid;place-items:center;background:var(--c);color:var(--on);font-family:var(--mono);font-weight:700;font-size:.72rem}
+.rl .pt{font-family:var(--mono);font-weight:700}
+.rl .st{font-size:.76rem;color:var(--soft);min-width:3.4rem;text-align:right}
+.rl.miss .pt{color:var(--soft)}
+.todo{margin:16px 0;padding:14px 18px;border-radius:18px;border:1.5px solid var(--l3);background:color-mix(in srgb,var(--l3) 14%,transparent);font-weight:600}
+.todo a{text-decoration:underline}
+.shot{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px}
+.shot .card{padding:16px 18px}
+.shot h3{font-size:1.05rem;margin-bottom:6px}
+
+/* passage sheet */
+.fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:35;min-height:50px;padding:0 22px;border:0;border-radius:999px;background:var(--l3);color:var(--on);font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.sheet{position:fixed;inset:0;z-index:60;display:flex;justify-content:flex-end;align-items:flex-end}
+.sheet .scrim{position:absolute;inset:0;background:rgba(5,8,14,.6)}
+.sheet .panel{position:relative;width:min(480px,100%);max-height:86%;display:flex;flex-direction:column;background:var(--surf);border:1px solid var(--line);border-radius:24px 24px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheet .ph{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.sheet .pb{overflow-y:auto;padding:18px}
+@media (min-width:900px){
+  .sheet{align-items:stretch}
+  .sheet .panel{max-height:none;height:100%;border-radius:24px 0 0 24px}
+}
+
+@media (max-width:760px){
+  .hero{grid-template-columns:minmax(0,1fr)}
+  .rules{grid-template-columns:minmax(0,1fr)}
+  .seg .lbl em{display:none}
+  .rwho{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .rwho .wide{grid-column:1/-1}
+  .rp{grid-template-columns:minmax(0,1fr) auto}
+  .rp .bar{grid-column:1/-1;order:3}
+  .map .meta{display:none}
+  .who{max-width:55%}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important}
+}
+
+.mic{background:var(--l1)}
+.mic.rec{background:var(--bad);color:#fff;animation:pop 1s infinite}
+.vstat{font-size:.92rem;font-weight:600;min-height:1.4em;color:var(--soft)}
+.vstat.ok{color:var(--good)}.vstat.no{color:var(--bad)}
+.vact{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.notice{margin-bottom:16px;padding:12px 16px;border-radius:16px;border:1.5px solid var(--l3);background:color-mix(in srgb,var(--l3) 14%,transparent);font-weight:600}
+.top .row1{padding-bottom:10px}
+.mtest{margin-top:14px;padding:14px;border:1px dashed var(--line);border-radius:18px}
+.bwrap{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+.rules{margin:0;padding-left:20px;display:grid;gap:6px}
+.qnav{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-bottom:12px}
+.qn{min-height:38px;border:1.5px solid var(--line);border-radius:10px;background:var(--surf2);font-weight:700;cursor:pointer;color:inherit}
+.qn.done{background:color-mix(in srgb,var(--l3) 30%,transparent);border-color:var(--l3)}
+.qn.cur{outline:3px solid var(--pc,var(--l4));outline-offset:1px}
+.qn.gap{margin-left:0}
+.passage{margin:0 0 12px;padding:12px 16px;border:1.5px solid var(--line);border-radius:16px;background:var(--surf2);line-height:1.8}
+.passage summary{cursor:pointer;font-weight:700}.passage p{margin:8px 0 0}
+.qtext{font-size:1.1rem;line-height:1.7;margin:0 0 12px}
+.qopts{display:grid!important;grid-template-columns:1fr!important;gap:10px}
+.qopts .opt{width:100%;justify-content:flex-start;background:var(--surf)}
+.qopts .opt .ol{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--surf2);font-family:var(--mono);font-weight:800}
+.qopts .opt.sel{border-color:var(--pc,var(--l4));background:color-mix(in srgb,var(--pc,var(--l4)) 22%,transparent)}
+.qopts .opt.sel .ol{background:var(--pc,var(--l4));color:var(--on)}
+.bigscore{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:6px 22px}
+.bigscore b{font-size:3.6rem;line-height:1}.bigscore span{font-size:1.4rem;font-weight:700}.bigscore em{font-style:normal;font-weight:700;color:var(--soft)}
+.plist{padding:0 22px}.plist p{display:flex;justify-content:space-between;margin:4px 0}
+.mkgrid{display:flex;flex-wrap:wrap;gap:6px;padding:10px 22px}
+.mk{padding:2px 10px;border-radius:999px;font-weight:700;font-size:.9rem;border:1.5px solid var(--line)}
+.mk.g{background:var(--goodbg);border-color:var(--good)}.mk.r{background:var(--badbg);border-color:var(--bad)}
+.codeline{padding:6px 22px 16px;margin:0;font-family:var(--mono)}
+</style>
+
+<header class="top"><div class="wrap"><div class="row1"><a class="brand" href="#home"><i></i>Life in 2050 · Test</a><a class="who" id="who" href="#score" hidden></a></div></div></header>
+<main class="wrap" id="app"></main>
+<script>
+(function(){
+'use strict';
+var KEY='life2050-quiz-v1';
+var DATA={"passage": [["[1]", "What will our homes look like in 2050? Experts predict that most homes will be smart homes. People will control the lights, doors and air conditioners with their voices. Robots will clean the house and cook meals, so people will have more free time."], ["[2]", "Transport will change, too. Self-driving cars will take us to school and work safely, and we will not need to drive. Some cities will have flying cars, so people will travel above traffic jams."], ["[3]", "School and work will also be different. Students will learn online at home or in virtual reality classrooms. Artificial intelligence (AI) will be a personal teacher for everyone, and many people will work from home with the help of AI."], ["[4]", "Finally, our planet will be cleaner. People will use renewable energy from the sun and the wind instead of oil and coal, so the air will be fresher. Life in the future will be easier, but we must use technology wisely."]], "vocab": [{"q": "Choose the Thai meaning of “predict”.", "o": ["ทำนาย / คาดการณ์", "ควบคุม", "ประหยัด", "เปลี่ยนแปลง"]}, {"q": "Choose the Thai meaning of “renewable energy”.", "o": ["พลังงานหมุนเวียน", "พลังงานนิวเคลียร์", "พลังงานจากถ่านหิน", "พลังงานที่ใช้แล้วหมดไป"]}, {"q": "Choose the Thai meaning of “virtual reality”.", "o": ["โลกเสมือนจริง", "ความจริงของชีวิต", "ห้องเรียนจริง", "ภาพยนตร์เก่า"]}, {"q": "Choose the Thai meaning of “artificial intelligence (AI)”.", "o": ["ปัญญาประดิษฐ์", "ความฉลาดตามธรรมชาติ", "โรงงานผลิตหุ่นยนต์", "การสื่อสารทางไกล"]}, {"q": "“A car that can drive by itself without a driver.” Which word fits this meaning?", "o": ["self-driving car", "flying car", "smart home", "online learning"]}, {"q": "“A house that uses technology to control lights, doors and air conditioners.” Which word fits this meaning?", "o": ["smart home", "virtual reality", "flying car", "future"]}, {"q": "Scientists ______ that robots will do many jobs in 2050.", "o": ["predict", "control", "cook", "wake"]}, {"q": "Students can study at home with ______ and a computer.", "o": ["online learning", "traffic jams", "coal", "air conditioners"]}, {"q": "Which English word means “อนาคต”?", "o": ["future", "feature", "factory", "fashion"]}, {"q": "Which word is NOT a kind of transport?", "o": ["renewable energy", "self-driving car", "flying car", "bus"]}], "read": [{"q": "What is the best title for the whole passage?", "o": ["How Technology Will Change Our Lives in 2050", "The History of Robots", "Why Cities Are Dirty Today", "How to Drive a Flying Car"]}, {"q": "Paragraph [3] is mainly about ______.", "o": ["changes in school and work", "smart homes", "clean energy", "traffic jams"]}, {"q": "How will people control the lights, doors and air conditioners in smart homes?", "o": ["With their voices", "With their phones", "With solar panels", "With flying cars"]}, {"q": "Why will people have more free time?", "o": ["Because robots will clean the house and cook meals.", "Because they will work from home.", "Because cars will fly.", "Because students will learn online."]}, {"q": "In paragraph [2], “us” refers to ______.", "o": ["people", "robots", "cities", "experts"]}, {"q": "In paragraph [2], “traffic jams” means ______.", "o": ["many cars on the road that cannot move", "a kind of fruit jam", "roads with no cars", "fast cars in the sky"]}, {"q": "Which sentence is TRUE according to the passage?", "o": ["Some cities will have flying cars.", "All people will drive flying cars.", "Students will never go to school again.", "Robots will replace all teachers."]}, {"q": "The writer says “we must use technology wisely.” This means ______.", "o": ["we should use technology carefully and sensibly", "we should stop using technology", "we should use technology all the time", "we should buy more new technology"]}, {"q": "Why will the air be fresher in 2050?", "o": ["People will use renewable energy instead of oil and coal.", "People will drive more cars.", "People will cook more meals at home.", "Cities will have more traffic jams."]}, {"q": "What is paragraph [4] mostly about?", "o": ["A cleaner planet and the wise use of technology", "Homes that listen to our voices", "How to travel above traffic", "AI as a personal teacher"]}]};
+function $(s,r){return (r||document).querySelector(s);}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));}
+function el(t,c,h){var e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+var store={get:function(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}},del:function(k){try{localStorage.removeItem(k);}catch(e){}}};
+var PARTS=[{k:'vocab',en:'Part 1 Vocabulary',th:'ความหมายศัพท์',c:'--l1',n:10},{k:'read',en:'Part 2 Reading',th:'อ่านจับใจความ',c:'--l4',n:10}];
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+/* build items with ids */
+var ITEMS=[];
+PARTS.forEach(function(p){DATA[p.k].forEach(function(it,i){ITEMS.push({id:p.k+(i+1),part:p.k,q:it.q,o:it.o,a:it.o[0]});});});
+var BYID={};ITEMS.forEach(function(it){BYID[it.id]=it;});
+var S=store.get(KEY,null);if(!S||typeof S!=='object')S={};
+S.name=S.name||'';S.cls=S.cls||'';S.no=S.no||'';S.ans=S.ans||{};S.idx=S.idx||0;S.result=S.result||null;
+if(!S.order){S.order=[];PARTS.forEach(function(p){S.order=S.order.concat(shuffle(ITEMS.filter(function(i){return i.part===p.k;}).map(function(i){return i.id;})));});S.opts={};ITEMS.forEach(function(it){S.opts[it.id]=shuffle(it.o);});}
+function persist(){store.set(KEY,S);}
+persist();
+var app=$('#app'),whoEl=$('#who');
+function chrome(){if(S.name.trim()){whoEl.hidden=false;whoEl.innerHTML='<span>'+esc(S.name.trim())+'</span>';}else whoEl.hidden=true;}
+function stamp(t){return new Date(t||Date.now()).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+function code(name,cls,no,got){
+  var s=[name.trim().toLowerCase().replace(/\s+/g,' '),cls.trim().toLowerCase().replace(/\s+/g,''),String(no).trim(),got,'L2050-QZ-7'].join('|'),h=5381,i;
+  for(i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))|0;}
+  var h2=7919;for(i=s.length-1;i>=0;i--){h2=((h2<<5)^(h2>>>2)^s.charCodeAt(i))|0;}
+  return (Math.abs(h).toString(36)+Math.abs(h2).toString(36)).toUpperCase().slice(0,8);
+}
+function answered(){return S.order.filter(function(id){return S.ans[id]!=null;}).length;}
+/* ---------- home ---------- */
+function renderHome(){
+  var p=el('div');
+  var locked=!!S.result;
+  p.innerHTML='<section class="hero"><div><span class="tag" style="--pc:var(--l5)">แบบทดสอบ · 20 คะแนน</span><h1>Life in <u>2050</u> Test.</h1><p class="lead">แบบทดสอบหลังเล่นเกม Life in 2050 มี 2 ส่วน ส่วนละ 10 ข้อ ได้แก่ ความหมายศัพท์ และการอ่านจับใจความ</p>'+
+  '<form class="card idcard" id="idf" autocomplete="off"><div class="idgrid"><label class="field wide">Name · ชื่อ-นามสกุล<input type="text" id="nm" maxlength="60" placeholder="ชื่อ-นามสกุล"></label><label class="field">Class · ห้อง<input type="text" id="cl" maxlength="12" placeholder="เช่น ม.3/2"></label><label class="field">No. · เลขที่<input type="number" id="no" min="1" max="99" inputmode="numeric"></label></div><div class="row" style="margin-top:0"><button class="btn" id="st" type="submit" style="--pc:var(--l3)">'+(locked?'ดูผลคะแนน':(answered()?'ทำต่อ':'เริ่มทำแบบทดสอบ'))+'</button></div><p class="hint" id="hn"></p></form></div>'+
+  '<div><div class="card"><h3 style="margin-bottom:8px">กติกา</h3><ul class="rules"><li>ทั้งหมด 20 ข้อ ข้อละ 1 คะแนน เลือกคำตอบเดียวที่ถูกที่สุด</li><li>ส่วนที่ 2 มีบทอ่านอยู่ด้านบนของแต่ละข้อ อ่านได้ตลอด</li><li>ย้อนกลับไปแก้คำตอบได้ก่อนกดส่ง</li><li>ระหว่างทำจะไม่บอกว่าถูกหรือผิด หลังส่งแล้วจะ<b>ส่งซ้ำไม่ได้</b></li><li>ทำเสร็จแล้วแคปหน้าผลคะแนนส่งครู</li></ul></div></div></section>';
+  app.appendChild(p);
+  var nm=$('#nm',p),cl=$('#cl',p),no=$('#no',p),st=$('#st',p),hn=$('#hn',p);
+  nm.value=S.name;cl.value=S.cls;no.value=S.no;
+  if(locked){[nm,cl,no].forEach(function(f){f.disabled=true;});}
+  function upd(){var ok=nm.value.trim().length>=2&&cl.value.trim().length>=1&&String(no.value).trim().length>=1;st.disabled=!ok;hn.textContent=ok?'':'กรอกชื่อ ห้อง และเลขที่ให้ครบก่อนเริ่ม';}
+  [nm,cl,no].forEach(function(f){f.addEventListener('input',function(){S.name=nm.value;S.cls=cl.value;S.no=no.value;persist();upd();chrome();});});
+  $('#idf',p).addEventListener('submit',function(e){e.preventDefault();if(st.disabled)return;location.hash=locked?'#score':'#t';});
+  upd();
+}
+/* ---------- test ---------- */
+function renderTest(){
+  if(S.result){location.hash='#score';return;}
+  var wrap=el('div','page');
+  var id=S.order[S.idx],it=BYID[id],pi=it.part==='vocab'?0:1,pt=PARTS[pi];
+  wrap.style.setProperty('--pc','var('+pt.c+')');
+  var nav=S.order.map(function(x,i){var c='qn'+(S.ans[x]!=null?' done':'')+(i===S.idx?' cur':'')+(i===10?' gap':'');return '<button type="button" class="'+c+'" data-i="'+i+'">'+(i+1)+'</button>';}).join('');
+  var inPart=S.idx%10+1;
+  var passage='';
+  if(it.part==='read'){passage='<details class="passage" open><summary>📖 Life in 2050 (กดเพื่อซ่อน/แสดงบทอ่าน)</summary>'+DATA.passage.map(function(p){return '<p><b>'+esc(p[0])+'</b> '+esc(p[1])+'</p>';}).join('')+'</details>';}
+  wrap.innerHTML='<div class="qnav">'+nav+'</div><div class="partline"><span class="tag" style="--pc:var('+pt.c+')">'+esc(pt.en)+'</span><span class="pname">ข้อ '+inPart+' / 10 <em>· '+esc(pt.th)+'</em></span></div>'+passage+
+  '<section class="card"><p class="qtext"><b>'+(S.idx+1)+'.</b> '+esc(it.q)+'</p><div class="qopts"></div></section><div class="pager"><button class="btn ghost" id="pv" type="button"'+(S.idx===0?' disabled':'')+'>← ก่อนหน้า</button>'+(S.idx<S.order.length-1?'<button class="btn" id="nx" type="button">ข้อต่อไป →</button>':'<button class="btn" id="sb" type="button" style="--pc:var(--l3)">ตรวจสอบและส่งคำตอบ</button>')+'</div><p class="hint" id="pg" style="text-align:center">ตอบแล้ว '+answered()+' / 20 ข้อ</p><div id="cf"></div>';
+  app.appendChild(wrap);
+  var box=$('.qopts',wrap);
+  S.opts[id].forEach(function(o,k){
+    var b=el('button','opt qo'+(S.ans[id]===o?' sel':''),'<span class="ol">'+'ABCD'.charAt(k)+'</span><span>'+esc(o)+'</span>');b.type='button';
+    b.addEventListener('click',function(){S.ans[id]=o;persist();$$('.qo',box).forEach(function(x){x.classList.remove('sel');});b.classList.add('sel');var n=$$('.qn',wrap)[S.idx];n.classList.add('done');$('#pg',wrap).textContent='ตอบแล้ว '+answered()+' / 20 ข้อ';});
+    box.appendChild(b);
+  });
+  $$('.qn',wrap).forEach(function(b){b.addEventListener('click',function(){S.idx=parseInt(b.dataset.i,10);persist();render();});});
+  $('#pv',wrap).addEventListener('click',function(){if(S.idx>0){S.idx--;persist();render();}});
+  var nx=$('#nx',wrap);if(nx)nx.addEventListener('click',function(){S.idx++;persist();render();});
+  var sb=$('#sb',wrap);if(sb)sb.addEventListener('click',function(){confirmSubmit($('#cf',wrap));});
+}
+function confirmSubmit(box){
+  var un=S.order.map(function(x,i){return S.ans[x]==null?i+1:null;}).filter(Boolean);
+  box.innerHTML='<div class="card" style="margin-top:12px"><h3 style="margin-bottom:6px">ส่งคำตอบ?</h3><p>'+(un.length?'<b style="color:var(--bad)">ยังไม่ได้ตอบข้อ '+un.join(', ')+'</b> (ข้อที่ไม่ตอบจะได้ 0 คะแนน)':'ตอบครบทุกข้อแล้ว')+'<br>เมื่อส่งแล้ว<b>แก้ไขหรือส่งซ้ำไม่ได้</b></p><div class="row"><button class="btn ghost" id="cb" type="button">กลับไปตรวจ</button><button class="btn" id="cs" type="button" style="--pc:var(--l3)">ยืนยันส่งคำตอบ</button></div></div>';
+  $('#cb',box).addEventListener('click',function(){box.innerHTML='';});
+  $('#cs',box).addEventListener('click',submit);
+}
+function submit(){
+  var marks={},got=0,parts={vocab:0,read:0};
+  ITEMS.forEach(function(it){var ok=S.ans[it.id]===it.a;marks[it.id]=S.ans[it.id]==null?'-':(ok?'1':'0');if(ok){got++;parts[it.part]++;}});
+  S.result={got:got,parts:parts,marks:marks,at:Date.now(),code:code(S.name,S.cls,S.no,got)};persist();location.hash='#score';
+}
+/* ---------- score ---------- */
+function renderScore(){
+  if(!S.result){location.hash='#home';return;}
+  var r=S.result,pct=Math.round(r.got*100/20);
+  var lv=r.got>=16?'ดีมาก':(r.got>=12?'ดี':(r.got>=8?'พอใช้':'ควรทบทวนอีกครั้ง'));
+  var wrap=el('div','page');
+  var grid=S.order.slice().sort(function(a,b){return ITEMS.indexOf(BYID[a])-ITEMS.indexOf(BYID[b]);}).map(function(id){var m=r.marks[id],i=ITEMS.indexOf(BYID[id])+1;return '<span class="mk '+(m==='1'?'g':(m==='0'?'r':'n'))+'">'+i+(m==='1'?' ✓':(m==='0'?' ✗':' –'))+'</span>';}).join('');
+  wrap.innerHTML='<section class="card report" id="rp"><div class="rtop"><div><span class="tag" style="--pc:var(--l3)">Life in 2050 · Test</span><h2 style="margin-top:8px">Score Report</h2></div><span class="stamp">'+esc(stamp(r.at))+'</span></div><div class="rwho" style="grid-template-columns:2fr 1fr 1fr"><div><span class="hint">Name</span><br><b>'+esc(S.name)+'</b></div><div><span class="hint">Class</span><br><b>'+esc(S.cls)+'</b></div><div><span class="hint">No.</span><br><b>'+esc(S.no)+'</b></div></div>'+
+  '<div class="bigscore"><b>'+r.got+'</b><span>/ 20</span><em>'+pct+'% · '+lv+'</em></div>'+
+  '<div class="plist"><p><b>Part 1 Vocabulary</b> <span>'+r.parts.vocab+' / 10</span></p><p><b>Part 2 Reading</b> <span>'+r.parts.read+' / 10</span></p></div><div class="mkgrid">'+grid+'</div><p class="codeline">รหัสตรวจสอบ: <b>'+esc(r.code)+'</b></p></section><p class="hint" style="text-align:center;margin-top:10px">แคปหน้าจอส่วนนี้ส่งครู (ต้องเห็นชื่อ คะแนน และรหัสตรวจสอบ)</p><div class="row" style="justify-content:center"><a class="btn ghost" href="#home">Home</a></div>';
+  app.appendChild(wrap);
+}
+/* ---------- teacher ---------- */
+function renderCheck(){
+  var w=el('div','page');
+  w.innerHTML='<section class="card"><h2 style="margin-bottom:8px">ตรวจรหัสคะแนน (ครู)</h2><p class="soft" style="margin-bottom:10px">กรอกข้อมูลตามที่นักเรียนแคปมา ถ้ารหัสตรงกัน แสดงว่าชื่อ ห้อง เลขที่ และคะแนนไม่ถูกแก้ไข (ป้องกันการแต่งภาพเบื้องต้น ไม่ใช่ระบบกันโกงเต็มรูปแบบ)</p><div class="idgrid"><label class="field wide">ชื่อ-นามสกุล<input id="cn" type="text"></label><label class="field">ห้อง<input id="cc" type="text"></label><label class="field">เลขที่<input id="cx" type="number"></label><label class="field">คะแนน (0-20)<input id="cg" type="number" min="0" max="20"></label><label class="field">รหัส 8 ตัว<input id="ck" type="text" maxlength="8"></label></div><div class="row"><button class="btn" id="cb" type="button">ตรวจ</button></div><p class="vstat" id="cr"></p></section><section class="card" style="margin-top:14px"><h3 style="margin-bottom:6px">รีเซตในเครื่องนี้</h3><p class="soft" style="margin-bottom:8px">ลบคำตอบและผลที่ค้างในเบราว์เซอร์เครื่องนี้ เพื่อให้นักเรียนทำใหม่ (ใช้เมื่อนักเรียนใช้เครื่องผิดคนหรือทดสอบระบบ)</p><button class="btn ghost" id="rs" type="button">ล้างข้อมูลในเครื่องนี้</button></section>';
+  app.appendChild(w);
+  $('#cb',w).addEventListener('click',function(){var g=parseInt($('#cg',w).value,10),r=$('#cr',w);var c=code($('#cn',w).value,$('#cc',w).value,$('#cx',w).value,g);var ok=c===$('#ck',w).value.trim().toUpperCase();r.className='vstat '+(ok?'ok':'no');r.textContent=ok?'✓ ตรงกัน ข้อมูลไม่ถูกแก้ไข':'✗ ไม่ตรงกัน ตรวจตัวสะกด หรืออาจถูกแก้ไข';});
+  var rs=$('#rs',w);rs.addEventListener('click',function(){if(rs.dataset.s!=='1'){rs.dataset.s='1';rs.textContent='กดอีกครั้งเพื่อยืนยันการล้าง';return;}store.del(KEY);location.hash='#home';location.reload();});
+}
+function render(){
+  var r=(location.hash||'#home').slice(1);
+  var ok=['home','t','score','check'];if(ok.indexOf(r)<0)r='home';
+  if((r==='t')&&!(S.name.trim().length>=2&&S.cls.trim()&&String(S.no).trim())){r='home';location.hash='#home';}
+  app.replaceChildren();
+  ({home:renderHome,t:renderTest,score:renderScore,check:renderCheck})[r]();
+  chrome();window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',render);
+window.__qz={ITEMS:ITEMS,S:function(){return S;}};
+render();
+})();
+
+</script>
+</body>
+</html>
